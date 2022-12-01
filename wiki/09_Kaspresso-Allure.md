@@ -1,8 +1,6 @@
 # Kaspresso-allure support
 
 ## _What's new_
-
-### 1.3.0
 In the new **1.3.0** Kaspresso release the [**allure-framework**](https://github.com/allure-framework/allure-kotlin) support was added. Now it is very easy to generate pretty test reports using both Kaspresso and Allure frameworks.
 
 In this release, the file-managing classes family that is responsible for providing files for screenshots and logs has been refactored for better usage and extensibility. This change has affected the old classes that are deprecated now (see package com.kaspersky.kaspresso.files). Usage example: [**CustomizedSimpleTest**](../samples/kaspresso-sample/src/androidTest/kotlin/com/kaspersky/kaspressample/simple_tests/CustomizedSimpleTest.kt).
@@ -13,33 +11,13 @@ Also, the following interceptors were added:
 
 In the package [**com.kaspersky.components.alluresupport.interceptors**](../allure-support/src/main/kotlin/com/kaspersky/components/alluresupport/interceptors), there are special Kaspresso interceptors helping to link and process files for Allure-report.
 
-### 1.4.3
-
-Video recordings support brought back. Kaspresso 1.4.2 release used an updated allure dependency which brought breaking change:
-allure changed default report directory to /data/data/your.package.com/files/allure-results. This raised another issue - allure 
-could no longer attach video files (see this [issue](https://issuetracker.google.com/issues/258277873)).
-
-Kaspresso 1.4.3 release introduces a solution that allows to both store allure report on external memory and attach videos.
-To use updated allure support, please use `Kaspresso.Builder.withForcedAllureSupport` builder and add kaspresso runner to 
-your build.gradle.
-
-```groovy
-android {
-    defaultConfig {
-        //...
-        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
-    }
-    //...
-}
-```
-
 ## _How to use_
-First of all, add the following Gradle dependency and Kaspresso runner to your project's gradle file to include **allure-support** Kaspresso module:
+First of all, add the following Gradle dependency and Allure runner to your project's gradle file to include **allure-support** Kaspresso module:
 ```groovy
 android {
     defaultConfig {
         //...    
-        testInstrumentationRunner = "com.kaspersky.kaspresso.runner.KaspressoRunner"
+        testInstrumentationRunner "io.qameta.allure.android.runners.AllureAndroidJUnitRunner"
     }
     //...
 }
@@ -106,7 +84,7 @@ This dir should be moved from the device to the host machine which will do gener
 
 Assuming your package is com.example
 ```
-adb exec-out sh -c "cd /sdcard/Documents && tar cf - allure-results" > ~/allure-results.tar
+adb exec-out run-as com.example sh -c 'cd /data/data/com.example/files && tar cf - allure-results' > ~/allure-results.tar
 ```
 `exec-out` runs passed command and returns result as a file which we save by `> allure-results.tar` in the end 
 
@@ -122,7 +100,7 @@ emulator-5554	device
 ```
 Select the needed device and call:
 ```
-adb -s emulator-5554 exec-out sh -c "cd /sdcard/Documents && tar cf - allure-results" > ~/allure-results.tar
+adb -s emulator-5554 exec-out run-as com.example sh -c 'cd /data/data/com.example/files && tar cf - allure-results' > ~/allure-results.tar
 ```
 And that's it, the **allure-results** archive with all the test resources is now at your home directory.
 
@@ -134,8 +112,7 @@ brew install allure
 ```
 Now we are ready to generate and watch the report, just call:
 ```
-tar -xvf allure-results.tar
-allure serve ~/allure-results
+allure serve /Users/username/Desktop/allure-results
 ```
 Next, the Allure server generates the html-page representing the report and puts it to temp dir in your system. You will see the report opening in the new tab in your browser (the tab is opening automatically).
 
@@ -159,20 +136,3 @@ Details for failed test:
 ## _Details that you need to know_
 By default, Kaspresso-Allure introduces additional timeouts to assure the correctness of a Video recording as much as possible. To summarize, these timeouts increase a test execution time by 5 seconds.
 You are free to change these values by customizing `videoParams` in `Kaspresso.Builder`. See the example above.
-
-### _How kaspresso attaches videos to allure report_
-
-To support storage restrictions allure saves reports to package private directory e.g. /data/data/your.package.name/files/allure-report whereas screen recordings are created by calling "screenrecord" utility through adb shell which is unable to
-save video files to package private directories (see this [issue](https://issuetracker.google.com/issues/258277873)).
-Because report created by one user (your package), but videos are created by another one leads to inability to attach videos 
-to report because your package has no rights on video files.
-
-This fact makes implementing screen recordings attachments rather tedious. Here's kaspresso approach:
-1. During the test we attach a stub video file to the report. This stub is placed in /data/data
-2. Once the test is finished we force allure to save the report 
-3. Kaspresso parses the report and saves file with names generated by allure (when you attach a file to report allure renames it with
-UUID and saves it's initial name in report)
-4. The report is moved to the external storage (/sdcard)
-5. Kaspresso calls adb shell to move the actual files to allure report dir to replace the stubs
-
-![](img/allure_report_workaround.svg)

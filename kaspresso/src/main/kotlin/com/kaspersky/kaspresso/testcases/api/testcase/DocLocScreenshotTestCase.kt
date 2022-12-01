@@ -24,7 +24,6 @@ import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirNameProvi
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirsProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesRootDirsProvider
 import com.kaspersky.kaspresso.files.resources.impl.SupportLegacyResourcesDirNameProvider
-import com.kaspersky.kaspresso.instrumental.InstrumentalDependencyProviderFactory
 import com.kaspersky.kaspresso.instrumental.exception.DocLocInUnitTestException
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.impl.screenshot.ScreenshotStepWatcherInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.impl.screenshot.TestRunnerScreenshotWatcherInterceptor
@@ -57,9 +56,7 @@ abstract class DocLocScreenshotTestCase(
         DefaultResourcesRootDirsProvider(),
     private val resourcesDirsProvider: ResourcesDirsProvider =
         DefaultResourcesDirsProvider(
-            dirsProvider = DefaultDirsProvider(
-                InstrumentalDependencyProviderFactory().getComponentProvider<Kaspresso>(InstrumentationRegistry.getInstrumentation())
-            ),
+            dirsProvider = DefaultDirsProvider(InstrumentationRegistry.getInstrumentation()),
             resourcesDirNameProvider = DefaultResourcesDirNameProvider()
         ),
     private val resourceFileNamesProvider: ResourceFileNamesProvider =
@@ -99,9 +96,7 @@ abstract class DocLocScreenshotTestCase(
             override val viewHierarchy: File = File("view_hierarchy")
         },
         resourcesDirsProvider = DefaultResourcesDirsProvider(
-            dirsProvider = DefaultDirsProvider(
-                InstrumentalDependencyProviderFactory().getComponentProvider<Kaspresso>(InstrumentationRegistry.getInstrumentation())
-            ),
+            dirsProvider = DefaultDirsProvider(InstrumentationRegistry.getInstrumentation()),
             resourcesDirNameProvider = SupportLegacyResourcesDirNameProvider(screenshotDirectoryProvider)
         ),
         resourceFileNamesProvider = object : ResourceFileNamesProvider {
