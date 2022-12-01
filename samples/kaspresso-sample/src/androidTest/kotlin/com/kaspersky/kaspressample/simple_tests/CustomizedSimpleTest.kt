@@ -1,9 +1,7 @@
 package com.kaspersky.kaspressample.simple_tests
 
-import android.Manifest
 import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.rule.GrantPermissionRule
 import com.kaspersky.kaspressample.MainActivity
 import com.kaspersky.kaspressample.R
 import com.kaspersky.kaspressample.screen.MainScreen
@@ -15,6 +13,7 @@ import com.kaspersky.kaspresso.files.resources.ResourcesRootDirsProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourceFilesProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirNameProvider
 import com.kaspersky.kaspresso.files.resources.impl.DefaultResourcesDirsProvider
+import com.kaspersky.kaspresso.instrumental.InstrumentalDependencyProviderFactory
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.TestRunWatcherInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.impl.logging.DumpLogcatInterceptor
 import com.kaspersky.kaspresso.interceptors.watcher.testcase.impl.screenshot.TestRunnerScreenshotWatcherInterceptor
@@ -35,7 +34,9 @@ class CustomizedSimpleTest : TestCase(
             videoParams = VideoParams(bitRate = 10_000_000)
             screenshotParams = ScreenshotParams(quality = 1)
 
-            dirsProvider = DefaultDirsProvider(InstrumentationRegistry.getInstrumentation())
+            dirsProvider = DefaultDirsProvider(
+                InstrumentalDependencyProviderFactory().getComponentProvider<Kaspresso>(InstrumentationRegistry.getInstrumentation())
+            )
             resourcesDirNameProvider = DefaultResourcesDirNameProvider()
 
             resourcesRootDirsProvider = object : ResourcesRootDirsProvider {
@@ -84,11 +85,6 @@ class CustomizedSimpleTest : TestCase(
         }
     }
 ) {
-    @get:Rule
-    val runtimePermissionRule: GrantPermissionRule = GrantPermissionRule.grant(
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    )
 
     @get:Rule
     val activityRule = activityScenarioRule<MainActivity>()
